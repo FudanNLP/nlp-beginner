@@ -3,6 +3,10 @@
 
 
 
+参考：[深度学习上手指南](https://github.com/nndl/nndl.github.io/blob/master/md/DeepGuide.md)
+
+
+
 1. 文本分类，实现基于logistic regression的文本分类
 
    1. 数据集：[Classify the sentiment of sentences from the Rotten Tomatoes dataset](https://www.kaggle.com/c/sentiment-analysis-on-movie-reviews)
