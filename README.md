@@ -7,7 +7,7 @@
 
 
 
-1. 文本分类，实现基于logistic regression的文本分类
+1. 文本分类，实现基于logistic regression的[文本分类](文本分类.md)
 
    1. 数据集：[Classify the sentiment of sentences from the Rotten Tomatoes dataset](https://www.kaggle.com/c/sentiment-analysis-on-movie-reviews)
 
