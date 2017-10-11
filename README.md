@@ -38,3 +38,10 @@
 
 ### 任务三：基于神经网络的语言模型
 
+1. 数据集：poetryFromTang.txt
+2. 实现要求：用LSTM、GRU来训练字符级的语言模型
+3. 知识点：
+   1. [语言模型](https://nndl.github.io/chap-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E4%B8%8E%E8%AF%8D%E5%B5%8C%E5%85%A5.pdf)
+   2. 文本生成
+4. 时间：两周
+
