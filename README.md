@@ -2,6 +2,8 @@
 
 新加入本实验室的同学，请按要求完成下面练习，并提交报告。
 
+*请完成每次练习后把report上传到QQ群中的共享文件夹中的“Reports of nlp-beginner”目录，文件命名格式为“task 1+姓名”。*
+
 参考：
 
 1. [深度学习上手指南](https://github.com/nndl/nndl.github.io/blob/master/md/DeepGuide.md)
@@ -33,7 +35,7 @@
 
 ### 任务二：基于词嵌入的文本分类
 
-熟悉tensorflow，用tensowflow 重写《任务一》的分类器
+熟悉Pytorch，用Pytorch重写《任务一》的分类器
 
 1. 参考
 
@@ -47,9 +49,9 @@
   （1）随机embedding的初始化方式
   （2）用glove 训练出来的文本初始化
 
-3. 实现Continuous BOW模型的文本分类；
+3. 实现Continuous BOW模型、CNN、RNN的文本分类；
 
-4. 时间：两周
+4. 时间：三周
 
 ### 任务三：基于神经网络的语言模型
 
