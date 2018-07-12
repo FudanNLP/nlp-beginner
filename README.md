@@ -39,7 +39,7 @@
 
 1. 参考
 
-   1. https://www.tensorflow.org/
+   1. https://pytorch.org/
    2. 词嵌入
       1. word2vec
       2. glove https://nlp.stanford.edu/projects/glove/
@@ -49,7 +49,7 @@
   （1）随机embedding的初始化方式
   （2）用glove 训练出来的文本初始化
 
-3. 实现Continuous BOW模型、CNN、RNN的文本分类；
+3. 实现CNN、RNN的文本分类；
 
 4. 时间：三周
 
@@ -60,7 +60,7 @@
 1. 参考
    1. 《[神经网络与深度学习](https://nndl.github.io/)》 第6、15章
 2. 数据集：poetryFromTang.txt
-3. 实现要求：TensorFlow
+3. 实现要求：Pytorch
 4. 知识点：
    1. 语言模型：困惑度等
    2. 文本生成
@@ -76,7 +76,7 @@
    2. https://arxiv.org/pdf/1603.01354.pdf
    3. https://arxiv.org/pdf/1603.01360.pdf
 2. 数据集：CONLL 2003，https://www.clips.uantwerpen.be/conll2003/ner/
-3. 实现要求：TensorFlow
+3. 实现要求：Pytorch
 4. 知识点：
    1. 评价指标：precision、recall、F1
    2. 无向图模型、CRF
