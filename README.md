@@ -26,44 +26,48 @@
 4. 需要了解的知识点：
 
    1. 文本特征表示：Bag-of-Word，N-gram
-   2. 分类器：logistic regression，损失函数、（随机）梯度下降、特征选择
+   2. 分类器：logistic/softmax  regression，损失函数、（随机）梯度下降、特征选择
    3. 数据集：训练集/验证集/测试集的划分
 5. 实验：
    1. 分析不同的特征、损失函数、学习率对最终分类性能的影响
    2. shuffle 、batch、mini-batch 
 6. 时间：两周
 
-### 任务二：基于词嵌入的文本分类
+### 任务二：基于深度学习的文本分类
 
-熟悉Pytorch，用Pytorch重写《任务一》的分类器
+熟悉Pytorch，用Pytorch重写《任务一》，实现CNN、RNN的文本分类；
 
 1. 参考
 
    1. https://pytorch.org/
-   2. 词嵌入
-      1. word2vec
-      2. glove https://nlp.stanford.edu/projects/glove/
-
-2. 词用embedding 的方式初始化；
+   2. Convolutional Neural Networks for Sentence Classification <https://arxiv.org/abs/1408.5882>
+   3. <https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/>
+   
+2. word embedding 的方式初始化；
 
   （1）随机embedding的初始化方式
-  （2）用glove 训练出来的文本初始化
+  （2）用glove 预训练的embedding进行初始化 https://nlp.stanford.edu/projects/glove/
 
-3. 实现CNN、RNN的文本分类；
+3. 知识点：
 
-4. 时间：三周
+   1. CNN/RNN的特征抽取
+   2. 词嵌入
 
-### 任务三：基于神经网络的语言模型
+4. 时间：两周
 
-用LSTM、GRU来训练字符级的语言模型，计算困惑度
+### 任务三：基于注意力机制的文本匹配
+
+输入两个句子判断，判断它们之间的关系。参考[ESIM]( https://arxiv.org/pdf/1609.06038v3.pdf)（可以只用LSTM，忽略Tree-LSTM），用双向的注意力机制实现。
 
 1. 参考
-   1. 《[神经网络与深度学习](https://nndl.github.io/)》 第6、15章
-2. 数据集：poetryFromTang.txt
+   1. 《[神经网络与深度学习](https://nndl.github.io/)》 第7章
+   2. Reasoning about Entailment with Neural Attention <https://arxiv.org/pdf/1509.06664v1.pdf>
+   3. Enhanced LSTM for Natural Language Inference <https://arxiv.org/pdf/1609.06038v3.pdf>
+2. 数据集：https://nlp.stanford.edu/projects/snli/
 3. 实现要求：Pytorch
 4. 知识点：
-   1. 语言模型：困惑度等
-   2. 文本生成
+   1. 注意力机制
+   2. token2token attetnion
 5. 时间：两周
 
 
@@ -80,4 +84,17 @@
 4. 知识点：
    1. 评价指标：precision、recall、F1
    2. 无向图模型、CRF
+5. 时间：两周
+
+### 任务五：基于神经网络的语言模型
+
+用LSTM、GRU来训练字符级的语言模型，计算困惑度
+
+1. 参考
+   1. 《[神经网络与深度学习](https://nndl.github.io/)》 第6、15章
+2. 数据集：poetryFromTang.txt
+3. 实现要求：Pytorch
+4. 知识点：
+   1. 语言模型：困惑度等
+   2. 文本生成
 5. 时间：两周
