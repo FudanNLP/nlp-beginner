@@ -37,23 +37,27 @@
 date:2021-2-19:2021-2-20  
 1.reference:  
    None  
+
 2.dataset:  
    train.tsv/test.tsv:  
+
 3.lib:  
    numpy;pandas;matplotlib  
+
 4.feature:  
    BOW;Ngram (high level 19422/136648)  
+
 5.details:  
    softmax;argmax;shuffle;batch;iteration;  
-6.time:  
-   5h  
-7.result:  
-  2000:epoch:10 acc:0.67   
+
+6.result:  
+  2000:epoch:10 acc:0.67
   20000:epoch:10 acc:0.55 (loss no longer decreases while epoch grows)  
-8.doc:  
+
+7.doc:  
    dataloader.py:iteration  
    utils.py:extraction features  
-   model.py:softmax in numpy   
+   model.py:softmax in numpy
    app.py:main  
 
 ### 任务二：基于深度学习的文本分类
