@@ -49,7 +49,7 @@ date:2021-2-19:2021-2-20
   2000:epoch:10 acc:0.67
   20000:epoch:10 acc:0.55 (loss no longer decreases while epoch grows)  
 7.conclusion:  
-   problem 1：我认为softmax + fc学到的只是目标数据集的分布，用dataloader.check_dataset()实验发现数据集分布及其不均匀，而softmax训练后的结果也只是略高于最大的那一项，我认为19422*5这么多的参数面对复杂语言问题表现的极限就是猜出目标分布+一点点记忆（5%），调了很久参数，或是pytorch都很难得到收敛的loss曲线，并且我在尝试使用均匀化的数据集后，准确率最多达到了0.22左右，为了严谨我今晚会看一下别人的表现并用pytorch彻底地重写这部分，来验证我的观点，当然也可能是我的问题。
+   problem 1：我认为softmax + fc学到的只是目标数据集的分布，用dataloader.check_dataset()实验发现数据集分布及其不均匀，而softmax训练后的结果也只是略高于最大的那一项，我认为19422*5这么多的参数面对复杂语言问题表现的极限就是猜出目标分布+一点点记忆（5%），调了很久参数，或是pytorch都很难得到收敛的loss曲线，并且我在尝试使用均匀化的数据集后，准确率最多达到了0.22左右，为了严谨我今晚会看一下别人的表现并用pytorch彻底地重写这部分，来验证我的观点，当然也可能是我的问题。  
 8.thinking:
    之前有个小bug是BOW的维度我舍得过高，改了之后pytorch run了一下，能复现别人的0.8train 0.5 test的acc，不过感觉没啥意义，我在自己的dataloader上得到均匀的数据集来训练，overfitting，train很高，test很低。到此为止task1结束，很有限，模型学到的东西很少，只是在硬背罢了，Ngrams实现了但是没run，意义不大。
 
