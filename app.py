@@ -4,11 +4,7 @@ import model
 import dataloader as loader
 import matplotlib.pyplot as plt
 import pickle
-import torch.optim as optim
 import collections
-import torch
-import torch.nn as nn
-
 
 
 def test_softmax(use_torch=False):

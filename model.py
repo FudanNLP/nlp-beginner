@@ -1,25 +1,9 @@
 import numpy as np 
 import copy
 import collections
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
+
 
 h = 1e-5
-
-class Softmax_torch(nn.Module):
-    def __init__(self, num_of_inputs, num_of_outputs):
-        super(Softmax_torch, self).__init__()
-        self.fc = nn.Linear(num_of_inputs, num_of_outputs)
-
-    def forward(self, x, y):
-        x = self.fc(x)
-        return x
-
-    def predict(self, x):
-        return torch.argmax(F.softmax((self.fc(x))), dim=1)
-
 
 class Softmax():
     def __init__(self, num_of_input=19422, num_of_output=5, lr=1):
@@ -79,7 +63,6 @@ class Softmax():
         
         acc = collections.Counter(true - predict)[0] / N
         
-        #print("true:", true, "predict", predict, "acc:",acc)
         print("acc: ", acc)
 
         return loss / N

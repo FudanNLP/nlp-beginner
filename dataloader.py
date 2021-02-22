@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np 
 from random import shuffle
 import collections
-import torch
 
 
 class dataset():
@@ -43,10 +42,10 @@ class data_loader():
         self.ratio = ratio
 
     def preprocess(self, sentence):
-        x = self.model
+        model = self.model
         for word in process(sentence):
-            x[word] += 1
-        return np.array([[value] for value in x.values()])
+            model[word] += 1
+        return np.array([[value] for value in model.values()])
 
     def load(self):
         print("Start Loading dataset...")
