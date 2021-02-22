@@ -59,6 +59,7 @@ def load_Ngram(path="./phrase_Ngram.npy"):
     return np.load(path, allow_pickle=True).item()
 
 
+
 if __name__ == "__main__":
     generate_BOW()
     generate_Ngram()

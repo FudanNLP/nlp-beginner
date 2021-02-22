@@ -1,70 +1,78 @@
 import numpy as np
 import utils
-from model import Softmax
-import dataloader
+import model
+import dataloader as loader
 import matplotlib.pyplot as plt
 import pickle
+import torch.optim as optim
+import collections
+import torch
+import torch.nn as nn
 
 
-def test_softmax():
+
+def test_softmax(use_torch=False):
     print("Softmax Test Starts!")
 
-    model = Softmax(19422, 5, 0.01)
+    net = model.Softmax_torch(19422, 5) if use_torch else model.Softmax(19422, 5, 0.01)
 
-    batch = [np.random.random((19422, 3)), np.array([np.array([0,0,0,1,0])]*3).reshape(5,3)]
+    x, y = [np.random.random((19422, 3)), np.array([np.array([0,0,0,1,0])]*3).reshape(5,3)]
     
-    for i in range(20):
-        loss, _ = model.fit(batch)
+    for i in range(20):       
+        loss = net.fit(x, y)
         print(i, loss)
     assert  loss < 10, "Softmax Test Failed!"
     print("Softmax Test Pass!")
         
 
-def test_datalaoder():
-    print("Dataloader Test Starts!")
+
+
+def test(net, dataset, batchsize=64, use_torch = False):
+    total_acc = 0
+
+    for j in range((dataset.length-1) // batchsize +1):            
+        x, y = dataset.get_batch(batch_size=batchsize)
+        y_ = net.predict(x)
+        
+        total_acc += collections.Counter(y.argmax(axis=0) - y_.argmax(axis=0))[0]
+
+    print("Total_acc: ", total_acc / dataset.length)
+
+
+def train(path="softmax_model.pickle", dataset=None, use_torch=False, epoch=20, batchsize=64, lr=0.001):
     
-    dataset = dataloader.data_loader()
-    count = 0
-    for i in dataset:
-        count += 1
+    net = model.Softmax_torch(19422, 5) if use_torch else model.Softmax(19422,5,lr = lr)
 
-    batchsize = 128
-
-    for i in range(dataset.length // batchsize + 1):
-        dataset.get_shuffle_batch(batchsize)
-
-    print("Dataloader Test pass !")
-
-
-def train(path="softmax_model.pickle"):
-    epoch = 10
-    
-    model = Softmax(19422,5,lr = 0.001)
-    
-    dataset = dataloader.data_loader(m=1000)
-    
-    batchsize = 1000
+    dataset = dataset
 
     per_batch_loss = []
 
     for i in range(epoch):
+        for j in range((dataset.length-1) // batchsize +1):            
+            x, y = dataset.get_batch(batch_size=batchsize)
+
+            outputs = net.fit(x, y)
+            
+            y_ = net.predict(x)
+  
+            loss = outputs
+            print("loss:", loss)
+            per_batch_loss.append(loss)
+            print("epoch:"+str(i), " step:"+str(j*batchsize%dataset.length)+":"+str((j+1)*batchsize%dataset.length))
         
-        for j in range((dataset.length-1) // batchsize +1):
-            batch = dataset.get_shuffle_batch(batch_size=batchsize)
-            loss, _ = model.fit(batch)
-            print("epoch:"+ str(i), " step:" + str(j*batchsize % dataset.length) + ":" + str((j+1)*batchsize % dataset.length),loss)
-            per_batch_loss.append(loss.flatten())
+    test(net=net, dataset=dataset, use_torch=use_torch)
 
     print("Train Finished!")
     plt.plot(per_batch_loss)
+    plt.title("Loss")
     plt.savefig("loss.jpg")
     plt.show()
     np.savetxt("loss.txt", per_batch_loss)
-    pickle.dump(model, open(path, "wb"))
+    pickle.dump(net, open(path, "wb"))
 
 
-def test(path="softmax_model.pickle", ):
-    model = pickle.load(open(path, "rb")) 
+def load_softmax(path="softmax_model.pickle", ):
+    return pickle.load(open(path, "rb")) 
 
 
 if __name__ == "__main__":
@@ -77,8 +85,19 @@ if __name__ == "__main__":
 
     test_softmax()
 
-    #test_datalaoder()
 
-    train()
+    m = 20
 
-    test()
+    dataloader = loader.data_loader(path="./train.tsv", model="BOW", length=200, classes = 5, ratio = 0.8)    
+    train_dataset, test_dataset = dataloader.load()
+    pickle.dump(train_dataset, open("./train_dataset.pickle", "wb"))
+    pickle.dump(test_dataset, open("./test_dataset.pickle", "wb"))
+
+    #train_dataset, test_dataset = pickle.load(open("./train_dataset.pickle", "rb")), pickle.load(open("./test_dataset.pickle", "rb"))
+
+    train(path="softmax_model.pickle", dataset=train_dataset,  epoch=20, batchsize=20, lr = 0.01)
+
+    test(load_softmax("softmax_model.pickle"),  dataset=test_dataset)
+
+
+
