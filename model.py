@@ -59,11 +59,9 @@ class Softmax():
 
         self.step(N)
         
-        true, predict =  y.argmax(axis=0), self.y_.argmax(axis=0)
-        
-        acc = collections.Counter(true - predict)[0] / N
-        
-        print("acc: ", acc)
+        #true, predict =  y.argmax(axis=0), self.y_.argmax(axis=0)
+        #acc = collections.Counter(true - predict)[0] / N
+        #print("acc: ", acc)
 
         return loss / N
 

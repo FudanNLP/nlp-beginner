@@ -3,12 +3,15 @@ import pandas as pd
 import numpy as np 
 from random import shuffle
 import collections
-
+import pprint
 
 class dataset():
-    def __init__(self, data):
-        self.data = data
-        self.length = len(self.data)        
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.length = len(self.x)
+        self.num_of_inputs = len(x[0])
+        self.order = [i for i in range(self.length)]      
         self.index = 0
         self.p = 0
 
@@ -20,49 +23,55 @@ class dataset():
             self.index = 0
             raise StopIteration()
         self.index += 1
-        return self.data[self.index]
+        return [self.x[self.index], self.y[self.index]]
 
     def get_batch(self, shuffled_batch=True, batch_size=64):
-        if shuffled_batch and self.p == 0 or self.p >= self.length:
-            shuffle(self.data)
+        if shuffled_batch and (self.p == 0 or self.p >= self.length):
+            shuffle(self.order)
+            x_new, y_new = [], []
+            for i in self.order:
+                x_new.append(self.x[i])
+                y_new.append(self.y[i])
             self.p = 0
         self.p += batch_size
+        x = np.array(self.x[self.p - batch_size : self.p])
+        y = np.array(self.y[self.p - batch_size : self.p])
 
-        x, y = list(map(list, zip(*self.data[self.p - batch_size : self.p])))
-
-        return np.array(x).reshape(len(x[0]), len(x)), np.array(y).reshape(len(y[0]), len(y))
+        return np.array(x).T, np.array(y).squeeze(2).T
 
 
 class data_loader():
     def __init__(self, path="./train.tsv", model="BOW", length=20000, classes=5, ratio=0.8):
         self.path=path
-        self.model=load_BOW() if model == "BOW" else load_Ngram()
         self.length=length
         self.classes=classes
         self.ratio = ratio
-
+        self.model = None
     def preprocess(self, sentence):
-        model = self.model
-        for word in process(sentence):
-            model[word] += 1
-        return np.array([[value] for value in model.values()])
+        return BOWTransform(sentence, self.model)
 
     def load(self):
         print("Start Loading dataset...")
         rawdata = pd.read_csv(self.path, sep='\t')
         rawphrase = rawdata["Phrase"].tolist()
+
+        self.model = generate_BOW(rawphrase)
+
         rawsentiment = rawdata["Sentiment"].tolist()
         mean_count = {i:0 for i in range(self.classes)}
-        data = []
+        x, y = [], []
         for i  in range(len(rawdata)):
             if mean_count[rawsentiment[i]] < self.length // self.classes:
                 mean_count[rawsentiment[i]] += 1
-                x = np.array(self.preprocess(rawphrase[i]))
-                y = np.array([onehot(5, rawsentiment[i])]).T
-                data.append([x, y])
+                x.append(rawphrase[i])
+                y.append(np.array([onehot(5, rawsentiment[i])]).T)
+
+        x = self.preprocess(x)
 
         print("Finished Loading !")
-        return dataset(data[:int(self.ratio*self.length)]), dataset(data[int(self.ratio*self.length):])
+
+        return dataset(x[:int(self.ratio*self.length)], y[:int(self.ratio*self.length)]), \
+            dataset(x[int(self.ratio*self.length):], y[int(self.ratio*self.length):])
 
 
 def test_dataloader(dataset):
@@ -75,7 +84,6 @@ def test_dataloader(dataset):
 
     for i in range(dataset.length // batchsize + 1):
         x, y = dataset.get_batch(batchsize)
-
         print(x.shape, y.shape)
     print("Dataloader Test pass !")
 
@@ -88,7 +96,7 @@ def check_dataset(path="./train.tsv"):
 
 
 if __name__ == "__main__":
-    check_dataset()
+    #check_dataset()
 
     dataloader = data_loader(path="./train.tsv", model="BOW", length=20, classes=5, ratio= 0.8)
     

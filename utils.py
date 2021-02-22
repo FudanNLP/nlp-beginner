@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import numpy as np 
+import copy
+
 
 def onehot(length, y):
     tmp = np.zeros(length)
@@ -18,21 +20,24 @@ def process(text):
     return text.split() 
 
 
-def generate_BOW(path=["./test.tsv", "./train.tsv"], type="bag-of-words"):
-    if os.path.exists("./phrase_BOW.npy"):
-        print("phrase_BOW.npy already exists!")
-        return 
-    
-    data = pd.concat([pd.read_csv(p, sep='\t') for p in path])
+def generate_BOW(data):
     book = {}
-
-    for sentence in data["Phrase"]:
+    for sentence in data:
         for word in process(sentence):
             if not word in book:
                 book[word] = 0
 
     np.save("./phrase_BOW.npy", book)
-    print("Done !")
+    return book
+
+def BOWTransform(data, book):
+    x = []
+    for sentence in data:
+        vector = copy.deepcopy(book)
+        for word in process(sentence):
+            vector[word] += 1
+        x.append(list(vector.values()))
+    return x
 
 def load_BOW(path="./phrase_BOW.npy"):
     return np.load(path, allow_pickle=True).item()
