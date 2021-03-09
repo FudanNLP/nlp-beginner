@@ -1,0 +1,311 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.5-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "python3",
+   "display_name": "Python 3.8.5 64-bit",
+   "metadata": {
+    "interpreter": {
+     "hash": "1ee38ef4a5a9feb55287fd749643f13d043cb0a7addaab2a9c224cbe137c0062"
+    }
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "<torch._C.Generator at 0x106f2b910>"
+      ]
+     },
+     "metadata": {},
+     "execution_count": 1
+    }
+   ],
+   "source": [
+    "# Author: Robert Guthrie\n",
+    "\n",
+    "import torch\n",
+    "import torch.nn as nn\n",
+    "import torch.nn.functional as F\n",
+    "import torch.optim as optim\n",
+    "\n",
+    "torch.manual_seed(1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "tensor([[ 0.6614,  0.2669,  0.0617,  0.6213, -0.4519]],\n       grad_fn=<EmbeddingBackward>)\n"
+     ]
+    }
+   ],
+   "source": [
+    "word_to_ix = {\"hello\": 0, \"world\": 1}\n",
+    "embeds = nn.Embedding(2, 5)  # 2 words in vocab, 5 dimensional embeddings\n",
+    "lookup_tensor = torch.tensor([word_to_ix[\"hello\"]], dtype=torch.long)\n",
+    "hello_embed = embeds(lookup_tensor)\n",
+    "print(hello_embed)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "[(['When', 'forty'], 'winters'), (['forty', 'winters'], 'shall'), (['winters', 'shall'], 'besiege')]\n",
+      "97 10 2\n",
+      "[516.9063994884491, 514.5768487453461, 512.2587718963623, 509.9527819156647, 507.65756940841675, 505.3724546432495, 503.09686183929443, 500.8305010795593, 498.57240772247314, 496.3220021724701]\n"
+     ]
+    }
+   ],
+   "source": [
+    "CONTEXT_SIZE = 2\n",
+    "EMBEDDING_DIM = 10\n",
+    "# We will use Shakespeare Sonnet 2\n",
+    "test_sentence = \"\"\"When forty winters shall besiege thy brow,\n",
+    "And dig deep trenches in thy beauty's field,\n",
+    "Thy youth's proud livery so gazed on now,\n",
+    "Will be a totter'd weed of small worth held:\n",
+    "Then being asked, where all thy beauty lies,\n",
+    "Where all the treasure of thy lusty days;\n",
+    "To say, within thine own deep sunken eyes,\n",
+    "Were an all-eating shame, and thriftless praise.\n",
+    "How much more praise deserv'd thy beauty's use,\n",
+    "If thou couldst answer 'This fair child of mine\n",
+    "Shall sum my count, and make my old excuse,'\n",
+    "Proving his beauty by succession thine!\n",
+    "This were to be new made when thou art old,\n",
+    "And see thy blood warm when thou feel'st it cold.\"\"\".split()\n",
+    "# we should tokenize the input, but we will ignore that for now\n",
+    "# build a list of tuples.  Each tuple is ([ word_i-2, word_i-1 ], target word)\n",
+    "trigrams = [([test_sentence[i], test_sentence[i + 1]], test_sentence[i + 2])\n",
+    "            for i in range(len(test_sentence) - 2)]\n",
+    "# print the first 3, just so you can see what they look like\n",
+    "print(trigrams[:3])\n",
+    "\n",
+    "vocab = set(test_sentence)\n",
+    "word_to_ix = {word: i for i, word in enumerate(vocab)}\n",
+    "\n",
+    "\n",
+    "class NGramLanguageModeler(nn.Module):\n",
+    "\n",
+    "    def __init__(self, vocab_size, embedding_dim, context_size):\n",
+    "        super(NGramLanguageModeler, self).__init__()\n",
+    "        self.embeddings = nn.Embedding(vocab_size, embedding_dim)\n",
+    "        self.linear1 = nn.Linear(context_size * embedding_dim, 128)\n",
+    "        self.linear2 = nn.Linear(128, vocab_size)\n",
+    "\n",
+    "    def forward(self, inputs):\n",
+    "        embeds = self.embeddings(inputs).view((1, -1))\n",
+    "        out = F.relu(self.linear1(embeds))\n",
+    "        out = self.linear2(out)\n",
+    "        log_probs = F.log_softmax(out, dim=1)\n",
+    "        return log_probs\n",
+    "\n",
+    "\n",
+    "losses = []\n",
+    "loss_function = nn.NLLLoss()\n",
+    "\n",
+    "print(len(vocab), EMBEDDING_DIM, CONTEXT_SIZE)\n",
+    "\n",
+    "model = NGramLanguageModeler(len(vocab), EMBEDDING_DIM, CONTEXT_SIZE)\n",
+    "optimizer = optim.SGD(model.parameters(), lr=0.001)\n",
+    "\n",
+    "for epoch in range(10):\n",
+    "    total_loss = 0\n",
+    "    for context, target in trigrams:\n",
+    "\n",
+    "        # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words\n",
+    "        # into integer indices and wrap them in tensors)\n",
+    "        context_idxs = torch.tensor([word_to_ix[w] for w in context], dtype=torch.long)\n",
+    "\n",
+    "        # Step 2. Recall that torch *accumulates* gradients. Before passing in a\n",
+    "        # new instance, you need to zero out the gradients from the old\n",
+    "        # instance\n",
+    "        model.zero_grad()\n",
+    "\n",
+    "        # Step 3. Run the forward pass, getting log probabilities over next\n",
+    "        # words\n",
+    "        log_probs = model(context_idxs)\n",
+    "\n",
+    "        # Step 4. Compute your loss function. (Again, Torch wants the target\n",
+    "        # word wrapped in a tensor)\n",
+    "        loss = loss_function(log_probs, torch.tensor([word_to_ix[target]], dtype=torch.long))\n",
+    "\n",
+    "        # Step 5. Do the backward pass and update the gradient\n",
+    "        loss.backward()\n",
+    "        optimizer.step()\n",
+    "\n",
+    "        # Get the Python number from a 1-element Tensor by calling tensor.item()\n",
+    "        total_loss += loss.item()\n",
+    "    losses.append(total_loss)\n",
+    "print(losses)  # The loss decreased every iteration over the training data!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "[(['We', 'are', 'to', 'study'], 'about'), (['are', 'about', 'study', 'the'], 'to'), (['about', 'to', 'the', 'idea'], 'study'), (['to', 'study', 'idea', 'of'], 'the'), (['study', 'the', 'of', 'a'], 'idea')]\n"
+     ]
+    },
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "tensor([ 5, 13,  6, 10])"
+      ]
+     },
+     "metadata": {},
+     "execution_count": 11
+    }
+   ],
+   "source": [
+    "CONTEXT_SIZE = 2  # 2 words to the left, 2 to the right\n",
+    "raw_text = \"\"\"We are about to study the idea of a computational process.\n",
+    "Computational processes are abstract beings that inhabit computers.\n",
+    "As they evolve, processes manipulate other abstract things called data.\n",
+    "The evolution of a process is directed by a pattern of rules\n",
+    "called a program. People create programs to direct processes. In effect,\n",
+    "we conjure the spirits of the computer with our spells.\"\"\".split()\n",
+    "\n",
+    "# By deriving a set from `raw_text`, we deduplicate the array\n",
+    "vocab = set(raw_text)\n",
+    "vocab_size = len(vocab)\n",
+    "\n",
+    "word_to_ix = {word: i for i, word in enumerate(vocab)}\n",
+    "data = []\n",
+    "for i in range(2, len(raw_text) - 2):\n",
+    "    context = [raw_text[i - 2], raw_text[i - 1],\n",
+    "               raw_text[i + 1], raw_text[i + 2]]\n",
+    "    target = raw_text[i]\n",
+    "    data.append((context, target))\n",
+    "print(data[:5])\n",
+    "\n",
+    "\n",
+    "class CBOW(nn.Module):\n",
+    "\n",
+    "    def __init__(self, vocab_size, embedding_dim, context_size):\n",
+    "        super(CBOW, self).__init__()\n",
+    "        self.embedding = nn.Embedding(vocab_size, embedding_dim)\n",
+    "        self.linear1 = nn.Linear(2*context_size * embedding_dim, 128)\n",
+    "        self.linear2 = nn.Linear(128, vocab_size)\n",
+    "\n",
+    "    def forward(self, inputs):\n",
+    "        embeds = self.embedding(inputs).view((1, -1))\n",
+    "        out = F.relu(self.linear1(embeds))\n",
+    "        out = self.linear2(out)\n",
+    "        log_probs = F.log_softmax(out, dim=1)\n",
+    "        return log_probs\n",
+    "\n",
+    "# create your model and train.  here are some functions to help you make\n",
+    "# the data ready for use by your module\n",
+    "\n",
+    "def make_context_vector(context, word_to_ix):\n",
+    "    idxs = [word_to_ix[w] for w in context]\n",
+    "    return torch.tensor(idxs, dtype=torch.long)\n",
+    "\n",
+    "\n",
+    "make_context_vector(data[0][0], word_to_ix)  # example\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "49 10 2\n",
+      "[225.9024052619934, 224.53937315940857, 223.18438935279846, 221.83730220794678, 220.49782419204712, 219.16491389274597, 217.8369700908661, 216.5146722793579, 215.19846510887146, 213.88546800613403]\n"
+     ]
+    }
+   ],
+   "source": [
+    "losses = []\n",
+    "loss_function = nn.NLLLoss()\n",
+    "print(len(vocab), EMBEDDING_DIM, CONTEXT_SIZE)\n",
+    "model = CBOW(len(vocab), EMBEDDING_DIM, CONTEXT_SIZE)\n",
+    "optimizer = optim.SGD(model.parameters(), lr=0.001)\n",
+    "\n",
+    "for epoch in range(10):\n",
+    "    total_loss = 0\n",
+    "    for context, target in data:\n",
+    "\n",
+    "        # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words\n",
+    "        # into integer indices and wrap them in tensors)\n",
+    "        \n",
+    "        # context_idxs = torch.tensor([word_to_ix[w] for w in context], dtype=torch.long)\n",
+    "        context_idxs = make_context_vector(context, word_to_ix)\n",
+    "\n",
+    "        # Step 2. Recall that torch *accumulates* gradients. Before passing in a\n",
+    "        # new instance, you need to zero out the gradients from the old\n",
+    "        # instance\n",
+    "        model.zero_grad()\n",
+    "\n",
+    "        # Step 3. Run the forward pass, getting log probabilities over next\n",
+    "        # words\n",
+    "        log_probs = model(context_idxs)\n",
+    "\n",
+    "        # Step 4. Compute your loss function. (Again, Torch wants the target\n",
+    "        # word wrapped in a tensor)\n",
+    "        loss = loss_function(log_probs, torch.tensor([word_to_ix[target]], dtype=torch.long))\n",
+    "\n",
+    "        # Step 5. Do the backward pass and update the gradient\n",
+    "        loss.backward()\n",
+    "        optimizer.step()\n",
+    "\n",
+    "        # Get the Python number from a 1-element Tensor by calling tensor.item()\n",
+    "        total_loss += loss.item()\n",
+    "    losses.append(total_loss)\n",
+    "print(losses)  # The loss decreased every iteration over the training data!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
